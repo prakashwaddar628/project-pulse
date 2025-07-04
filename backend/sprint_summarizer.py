@@ -27,8 +27,9 @@ Give:
 
     return prompt
 
+
 def generate_ai_summary(prompt: str) -> str:
-    response = ollama.chat(model='llama3', messages=[
-        {'role': 'user', 'content': prompt}
-    ])
-    return response['message']['content']
+    response = ollama.chat(
+        model="mistral", messages=[{"role": "user", "content": prompt}]
+    )
+    return response["message"]["content"]
