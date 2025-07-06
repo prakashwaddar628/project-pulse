@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from github_fetcher import fetch_github_data
 from sprint_summarizer import prepare_summary_prompt, generate_ai_summary
 
@@ -6,6 +7,14 @@ from sprint_summarizer import prepare_summary_prompt, generate_ai_summary
 from mock_data import mock_data
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 
 @app.get('/fetch_sprint/')
 def fetch_sprint(owner:str, repo:str, start_date:str, end_date:str):

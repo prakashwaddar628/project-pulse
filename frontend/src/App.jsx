@@ -19,14 +19,57 @@ function App() {
     try {
       const isoStart = startDate.toISOString();
       const isoEnd = endDate.toISOString();
-      const url = `http://127.0.0.1:8000/fetch_and_summarize/?owner=${owner}&repo=${repo}&start_date=${isoStart}&end_date=${isoEnd}`;
+      const url = `http://127.0.0.1:8000/sprint_summary/?owner=${owner}&repo=${repo}&start_date=${isoStart}&end_date=${isoEnd}`;
       const res = await axios.get(url);
+      if (res.status !== 200) {
+        throw new Error("Failed to fetch summary");
+      }
+      if (!res.data.summary) {
+        throw new Error("No summary data found");
+      }
+      if (!res.data.commits || !res.data.issues || !res.data.pull_requests) {
+        throw new Error("Incomplete data received");
+      }
+      if (
+        res.data.commits.length === 0 &&
+        res.data.issues.length === 0 &&
+        res.data.pull_requests.length === 0
+      ) {
+        throw new Error(
+          "No commits, issues, or pull requests found in the specified date range"
+        );
+      }
+      if (res.data.summary.length === 0) {
+        throw new Error("Summary is empty");
+      }
+      if (res.data.summary.length > 1000) {
+        throw new Error("Summary is too long, please refine your query");
+      }
+      if (
+        res.data.commits.length > 100 ||
+        res.data.issues.length > 100 ||
+        res.data.pull_requests.length > 100
+      ) {
+        throw new Error(
+          "Too many commits, issues, or pull requests. Please refine your date range."
+        );
+      }
+      if (res.data.commits.some((c) => !c.commit || !c.commit.message)) {
+        throw new Error("Some commits are missing commit messages");
+      }
+      if (res.data.issues.some((issue) => !issue.title || !issue.number)) {
+        throw new Error("Some issues are missing titles or numbers");
+      }
+      if (res.data.pull_requests.some((pr) => !pr.title || !pr.number)) {
+        throw new Error("Some pull requests are missing titles or numbers");
+      }
       setSummary(res.data.summary);
+      console.log(res.data);
       setRowdata({
         commits: res.data.commits,
         issues: res.data.issues,
         pull_requests: res.data.pull_requests,
-      })
+      });
     } catch (err) {
       console.error(err);
       alert("Error fetching summary!");
@@ -93,15 +136,19 @@ function App() {
             {summary}
           </div>
         )}
-        { rowdata && (
+        {rowdata && (
           <div className="mt-4">
-            <h2 className="text-lg font-bold text-indigo-700 mb-2">Raw Sprint DAta</h2>
+            <h2 className="text-lg font-bold text-indigo-700 mb-2">
+              Raw Sprint DAta
+            </h2>
             <div className="bg-white border rounded-lg p-4 max-h-[400px] overflow-y-auto text-sm">
               <div>
                 <h3 className="font-semibold text-gray-700">Commits</h3>
                 <ul className="list-disc pl-4">
                   {rowdata.commits.slice(0, 5).map((c, i) => (
-                    <li key={i} className="mb-1">{c.commit?.message}</li>
+                    <li key={i} className="mb-1">
+                      {c.commit?.message}
+                    </li>
                   ))}
                 </ul>
               </div>
