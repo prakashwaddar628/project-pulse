@@ -10,6 +10,7 @@ function App() {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [summary, setSummary] = useState("");
+  const [rowdata, setRowdata] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const fetchSummary = async () => {
@@ -18,9 +19,14 @@ function App() {
     try {
       const isoStart = startDate.toISOString();
       const isoEnd = endDate.toISOString();
-      const url = `https://127.0.0.1:8000/fetch_and_summarize/?owner=${owner}&repo=${repo}&start_date=${isoStart}&end_date=${isoEnd}`;
+      const url = `http://127.0.0.1:8000/fetch_and_summarize/?owner=${owner}&repo=${repo}&start_date=${isoStart}&end_date=${isoEnd}`;
       const res = await axios.get(url);
       setSummary(res.data.summary);
+      setRowdata({
+        commits: res.data.commits,
+        issues: res.data.issues,
+        pull_requests: res.data.pull_requests,
+      })
     } catch (err) {
       console.error(err);
       alert("Error fetching summary!");
@@ -85,6 +91,43 @@ function App() {
               Summary
             </h2>
             {summary}
+          </div>
+        )}
+        { rowdata && (
+          <div className="mt-4">
+            <h2 className="text-lg font-bold text-indigo-700 mb-2">Raw Sprint DAta</h2>
+            <div className="bg-white border rounded-lg p-4 max-h-[400px] overflow-y-auto text-sm">
+              <div>
+                <h3 className="font-semibold text-gray-700">Commits</h3>
+                <ul className="list-disc pl-4">
+                  {rowdata.commits.slice(0, 5).map((c, i) => (
+                    <li key={i} className="mb-1">{c.commit?.message}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-700">Issues</h3>
+                <ul className="list-disc pl-4">
+                  {rowdata.issues.slice(0, 5).map((issue, i) => (
+                    <li key={i}>
+                      #{issue.number}-{issue.title}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-700">Pull Requests</h3>
+                <ul className="list-disc pl-4">
+                  {rowdata.pull_requests.slice(0, 5).map((pr, i) => (
+                    <li key={i}>
+                      #{pr.number}-{pr.title}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
         )}
       </div>
