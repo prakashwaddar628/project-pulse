@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 import DatePicker from "react-datepicker";
@@ -19,6 +19,7 @@ function App() {
     try {
       const isoStart = startDate.toISOString();
       const isoEnd = endDate.toISOString();
+      
       const url = `http://127.0.0.1:8000/sprint_summary/?owner=${owner}&repo=${repo}&start_date=${isoStart}&end_date=${isoEnd}`;
       const res = await axios.get(url);
       if (res.status !== 200) {
